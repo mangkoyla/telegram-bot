@@ -1,11 +1,22 @@
-import { Context } from 'telegraf';
+import { Context, Telegraf } from 'telegraf';
+import { Update, Message } from 'typegram';
 import { Markup } from 'telegraf';
 import createDebug from 'debug';
+
+// Extend the Context interface to include session
+interface SessionData {
+  waitForCountryCode?: boolean;
+  countryCode?: string;
+}
+
+interface BotContext extends Context<Update> {
+  session: SessionData;
+}
 
 const debug = createDebug('bot:settings_command');
 
 // Main settings command
-const settings = () => async (ctx: Context) => {
+const settings = () => async (ctx: BotContext) => {
   const message = '*Settings Menu*\nPlease choose an option:';
   
   // Define the keyboard with options
@@ -22,7 +33,7 @@ const settings = () => async (ctx: Context) => {
 };
 
 // Handle VPN settings
-const handleVpnSettings = () => async (ctx: Context) => {
+const handleVpnSettings = () => async (ctx: BotContext) => {
   const message = '*VPN Settings*\nChoose one to save and return to the main menu:';
   
   // Define the keyboard for VPN options
@@ -40,7 +51,7 @@ const handleVpnSettings = () => async (ctx: Context) => {
 };
 
 // Handle Format settings
-const handleFormatSettings = () => async (ctx: Context) => {
+const handleFormatSettings = () => async (ctx: BotContext) => {
   const message = '*Format Settings*\nChoose one to save and return to the main menu:';
   
   // Define the keyboard for Format options
@@ -59,7 +70,7 @@ const handleFormatSettings = () => async (ctx: Context) => {
 };
 
 // Handle CC settings
-const handleCcSettings = () => async (ctx: Context) => {
+const handleCcSettings = () => async (ctx: BotContext) => {
   const message = '*Country Code Settings*\nPlease enter the country code:';
   
   debug(`Triggered "cc_settings" command with message \n${message}`);
@@ -72,8 +83,8 @@ const handleCcSettings = () => async (ctx: Context) => {
 };
 
 // Save country code and return to main menu
-const saveCountryCode = () => async (ctx: Context) => {
-  if (ctx.session.waitForCountryCode && ctx.message?.text) {
+const saveCountryCode = () => async (ctx: BotContext) => {
+  if (ctx.session.waitForCountryCode && ctx.message && 'text' in ctx.message) {
     const countryCode = ctx.message.text;
     ctx.session.countryCode = countryCode;
     ctx.session.waitForCountryCode = false;
@@ -89,7 +100,7 @@ const saveCountryCode = () => async (ctx: Context) => {
 };
 
 // Back to main menu handler
-const backToMainMenu = () => async (ctx: Context) => {
+const backToMainMenu = () => async (ctx: BotContext) => {
   await settings()(ctx);
 };
 
